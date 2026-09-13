@@ -40,6 +40,7 @@
   items.
 - Ink alone must still allow full completion of the game.
 - No hard paywalls on story chapters.
+- Paid options are **not** to be artificially nerfed for fairness.
 
 ---
 
@@ -108,9 +109,10 @@ The platform-specific decision means a player account holds **up to three
 independent Echoes balances**, not one. Consequences that are cheap now and
 painful later:
 
-- **Save schema.** Echoes must be stored per-platform from the first version —
-  `echoes: { steam: n, ios: n, android: n }`, never a scalar. Migrating a
-  shipped scalar balance into three buckets has no correct answer.
+- **Save schema — LOCKED.** Echoes are stored per-platform from the first
+  shipped version: `echoes: { steam: n, ios: n, android: n }`, never a scalar.
+  Migrating a shipped scalar balance into three buckets has no correct answer,
+  so this is settled ahead of implementation rather than during it.
 - **The balance UI cannot show a single number.** A bare "Echoes: 100" is
   actively misleading when the player holds three wallets, and it is the
   shortest path to "the game stole my Echoes" reviews. The player's other
@@ -158,16 +160,21 @@ Not blocking the slice. Recorded so they are not rediscovered late.
   that they are platform-scoped — one more point in the split's favor.
 - **Offline play.** Mobile players will play without connectivity. How long may
   the game run unsynced, and what happens to Ink earned offline?
-- **Stranded balances.** A player who buys a 500-Echo pack on Steam, spends
-  400, then moves to mobile has 100 Echoes stranded permanently. This will
-  generate support tickets. Worth deciding the policy *before* launch: pack
-  sizes that divide cleanly into common purchases, an explicit warning at first
-  purchase, or an accepted support burden.
-- **Refunds and chargebacks.** Reconciling a refunded Echoes purchase when the
-  resulting items have already synced to — and been consumed on — another
-  platform. The item sync makes this materially harder than a siloed inventory
-  would.
 - **Price parity.** Whether Steam and mobile carry the same base price.
+
+### Accepted risks (decided, not open)
+
+- **Stranded balances — ACCEPTED.** A player who buys a 500-Echo pack on Steam,
+  spends 400, then moves to mobile has 100 Echoes stranded permanently. This is
+  accepted. Mitigation: the Echoes purchase flow must show a **clear warning
+  that Echoes are platform-specific**, shown at purchase rather than buried in
+  a settings screen. This is a hard requirement on the store UI, not a
+  nice-to-have — it is the difference between a disclosed limitation and a
+  refund request.
+- **Refunds and chargebacks — ACCEPTED for now.** A refunded Echoes purchase
+  whose resulting items have already synced to, and been consumed on, another
+  platform cannot be cleanly reversed. Handled case-by-case through support.
+  Revisit if it becomes a real volume problem rather than a theoretical one.
 
 ---
 
