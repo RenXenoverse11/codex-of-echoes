@@ -2945,6 +2945,7 @@ The full turn pipeline: validate, damage, consume, gravity, refill, enemy respon
 
 **Files:**
 - Modify: `Assets/Scripts/Core/Battle/BattleEngine.cs`
+- Modify: `Assets/Scripts/Core/Grid/TileGrid.cs` (adds a test-only seam, `SetTileForTesting`)
 - Create: `Tests.Core/BattleCastTests.cs`
 
 **Interfaces:**
@@ -3866,7 +3867,8 @@ Create `Assets/Scripts/Game/CodexOfEchoes.Game.asmdef`:
     "references": [
         "CodexOfEchoes.Core",
         "Unity.InputSystem",
-        "Unity.TextMeshPro"
+        "Unity.TextMeshPro",
+        "UnityEngine.UI"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
