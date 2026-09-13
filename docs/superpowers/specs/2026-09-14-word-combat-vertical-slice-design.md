@@ -80,6 +80,13 @@ ScriptableObjects in the `Game` layer and converted to plain Core structs at
 load. This keeps Inspector-based tuning available without the rules depending
 on the engine.
 
+**Core types must stay serialization-friendly:** no Unity types, no circular
+references, stable field names. Cross-save is a locked requirement for a later
+milestone (see [platform and monetization decisions](2026-09-14-platform-monetization-decisions.md)),
+and plain serializable Core types are what make Cloud Save a mapping exercise
+rather than a rewrite. This costs nothing now and is expensive to retrofit once
+save data exists in the wild.
+
 ### Fast test loop
 
 `Tests.Core/CoreTests.csproj` lives **outside** `Assets/` so Unity ignores it,
@@ -389,3 +396,8 @@ question a test runner could answer.
 - The myth-rewriting narrative sequence (seam ready at the victory panel)
 - Mobile touch input (Input System already abstracts the path)
 - Chapter-specific palettes and visual motifs
+- **Potions** — excluded from the slice, but they carry most of the game's
+  premium monetization value, so they are the highest-priority combat addition
+  after it
+- **Accounts, cross-save, and the Ink / Echoes currencies** — see
+  [platform and monetization decisions](2026-09-14-platform-monetization-decisions.md)
