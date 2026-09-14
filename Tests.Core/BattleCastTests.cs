@@ -214,6 +214,7 @@ namespace CodexOfEchoes.Core.Tests
 
             Assert.That(engine.State.TurnNumber, Is.EqualTo(4));
             var enemyHpBeforeFeastTurn = engine.State.Enemy.Hp;
+            var turnBeforeFeastCast = engine.State.TurnNumber;
 
             StackDeck(engine, "C", "A", "T");
             SelectFirst(engine, 3);
@@ -228,6 +229,21 @@ namespace CodexOfEchoes.Core.Tests
             Assert.That(healed.Target, Is.EqualTo(CombatantId.Enemy));
             // 5 damage from CAT, then 10 healed back.
             Assert.That(engine.State.Enemy.Hp, Is.EqualTo(enemyHpBeforeFeastTurn - 5 + 10));
+
+            // Back half of the causal chain: the enemy acts, THEN Liora takes the hit,
+            // THEN the enemy heals from Feast. A future view replays this list in
+            // order, so the sequence matters as much as which events fire.
+            var eventList = events.ToList();
+            var enemyActedIndex = eventList.IndexOf(acted);
+            var liolaHitIndex = eventList.FindIndex(e =>
+                e is DamageDealtEvent damage && damage.Target == CombatantId.Liora);
+            var healedIndex = eventList.IndexOf(healed);
+
+            Assert.That(enemyActedIndex, Is.LessThan(liolaHitIndex));
+            Assert.That(liolaHitIndex, Is.LessThan(healedIndex));
+
+            // Feast advances the turn by exactly 1, same as any other enemy action.
+            Assert.That(engine.State.TurnNumber, Is.EqualTo(turnBeforeFeastCast + 1));
         }
 
         [Test]
