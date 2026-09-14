@@ -61,6 +61,15 @@ namespace CodexOfEchoes.Core.Grid
             return new GridRefillResult(moves, spawns);
         }
 
+        /// <summary>
+        /// Test seam: places a known tile so a test can cast a chosen word. Not used by
+        /// game code — battles are made reproducible by seeding, not by poking tiles.
+        /// </summary>
+        public void SetTileForTesting(int index, LetterTile tile)
+        {
+            _tiles[index] = tile;
+        }
+
         /// <summary>Replaces the whole board. Costs the player a turn; see BattleEngine.</summary>
         public void Scramble()
         {

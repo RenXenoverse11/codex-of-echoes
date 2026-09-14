@@ -71,6 +71,10 @@ namespace CodexOfEchoes.Core.Battle
                     events.Add(new SelectionClearedEvent());
                     break;
 
+                case CastWordCommand _:
+                    HandleCastWord(events);
+                    break;
+
                 default:
                     events.Add(new CommandRejectedEvent(
                         $"Unsupported command '{command.GetType().Name}'."));
@@ -107,6 +111,84 @@ namespace CodexOfEchoes.Core.Battle
             }
 
             events.Add(new TileDeselectedEvent(State.RemoveLastSelected()));
+        }
+
+        private void HandleCastWord(List<BattleEvent> events)
+        {
+            var word = State.CurrentWord;
+            var rejection = _validator.Validate(word);
+
+            if (rejection != WordRejectionReason.None)
+            {
+                // Not an error — gameplay. No turn is consumed, and the selection stays
+                // intact so Backspace remains useful after a miss.
+                events.Add(new WordRejectedEvent(word, rejection));
+                return;
+            }
+
+            var tier = _storyWords.TierOf(word);
+            var damage = DamageCalculator.Compute(State.SelectedTiles(), word.Length, tier);
+
+            events.Add(new WordCastEvent(word, damage, tier));
+            events.Add(new DamageDealtEvent(
+                CombatantId.Enemy, damage, State.Enemy.TakeDamage(damage)));
+
+            var consumed = State.SnapshotSelection();
+            var refill = State.Grid.Consume(consumed);
+
+            events.Add(new TilesConsumedEvent(consumed));
+            events.Add(new TilesFellEvent(refill.Moves));
+            events.Add(new TilesSpawnedEvent(refill.Spawns));
+
+            State.ClearSelection();
+            events.Add(new SelectionClearedEvent());
+
+            ResolveEnemyTurn(events);
+        }
+
+        /// <summary>
+        /// Runs the enemy half of a turn. Lethal resolves immediately: if the player's
+        /// word finished the enemy, it does not act, which is what makes a damage race
+        /// winnable on the turn Feast would otherwise land.
+        /// </summary>
+        private void ResolveEnemyTurn(List<BattleEvent> events)
+        {
+            if (State.Enemy.IsDefeated)
+            {
+                EndBattle(BattleOutcome.Victory, events);
+                return;
+            }
+
+            var action = _enemyBehaviour.Act(State.TurnNumber);
+            events.Add(new EnemyActedEvent(action.Ability, action.Damage, action.Heal));
+            events.Add(new DamageDealtEvent(
+                CombatantId.Liora, action.Damage, State.Player.TakeDamage(action.Damage)));
+
+            if (action.Heal > 0)
+            {
+                events.Add(new HealedEvent(
+                    CombatantId.Enemy, action.Heal, State.Enemy.Heal(action.Heal)));
+            }
+
+            if (State.Player.IsDefeated)
+            {
+                EndBattle(BattleOutcome.Defeat, events);
+                return;
+            }
+
+            if (_enemyBehaviour.TelegraphsFeastNextTurn(State.TurnNumber))
+            {
+                events.Add(new EnemyTelegraphedEvent(EnemyAbility.Feast));
+            }
+
+            State.TurnNumber++;
+        }
+
+        private void EndBattle(BattleOutcome outcome, List<BattleEvent> events)
+        {
+            State.Outcome = outcome;
+            State.ClearSelection();
+            events.Add(new BattleEndedEvent(outcome));
         }
     }
 }
