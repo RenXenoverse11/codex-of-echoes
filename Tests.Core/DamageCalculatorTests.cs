@@ -79,6 +79,18 @@ namespace CodexOfEchoes.Core.Tests
         }
 
         [Test]
+        public void PlatformIsAGenuineMidpointThatMustRoundUp()
+        {
+            // P(3)+L(1)+A(1)+T(1)+F(4)+O(1)+R(1)+M(3) = 15 base, length 8 characters,
+            // lengthMultiplier = 1.0 + 0.22*5 = 2.10 exactly, 15 x 2.10 = 31.5 exactly —
+            // a genuine midpoint the 3-character-only existing test cannot reach, since
+            // it never exercises the 0.22 multiplication at all.
+            Assert.That(
+                Damage(StoryWordTier.None, "P", "L", "A", "T", "F", "O", "R", "M"),
+                Is.EqualTo(32));
+        }
+
+        [Test]
         public void LengthMultiplierNeverDropsBelowOne()
         {
             // Length 3 is the minimum, so the step is never applied negatively.

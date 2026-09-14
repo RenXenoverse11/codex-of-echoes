@@ -32,12 +32,26 @@ namespace CodexOfEchoes.Core.Combat
                 baseDamage += tile.Value;
             }
 
-            var lengthMultiplier = 1.0f + (LengthStep * Math.Max(0, wordLength - LengthFloor));
-            var raw = baseDamage * lengthMultiplier * StoryWordTable.MultiplierFor(tier);
+            var k = Math.Max(0, wordLength - LengthFloor);
+            var story10 = StoryMultiplierTimesTen(tier);
 
-            // Half-away-from-zero, not C#'s default banker's rounding, which would
-            // shave damage off roughly half of all midpoint results.
-            return (int)Math.Round(raw, MidpointRounding.AwayFromZero);
+            // damage = base x (1 + 0.22k) x story, computed exactly (scaled by 1000, no
+            // floating point anywhere) then rounded half-away-from-zero. Float arithmetic
+            // here previously made true midpoints (e.g. 31.5) arrive as values like
+            // 31.499998 due to 0.22f's binary imprecision, silently rounding the wrong
+            // way for ~26% of real midpoint words.
+            long numerator = (long)baseDamage * (100 + (22 * k)) * story10;
+            return (int)((numerator * 2 + 1000) / 2000);
+        }
+
+        private static int StoryMultiplierTimesTen(StoryWordTier tier)
+        {
+            switch (tier)
+            {
+                case StoryWordTier.Bane: return 25;
+                case StoryWordTier.Echo: return 15;
+                default: return 10;
+            }
         }
     }
 }
