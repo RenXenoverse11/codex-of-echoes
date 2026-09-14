@@ -14,7 +14,8 @@ namespace CodexOfEchoes.Game.Input
     /// added later without the rules noticing.
     ///
     /// Bindings: letter keys claim a tile, Backspace undoes, Enter casts, Tab scrambles,
-    /// Escape clears.
+    /// Escape clears. The Attack button (see AttackButton.cs) casts the same way Enter
+    /// does, via OnAttackClicked.
     /// </summary>
     [RequireComponent(typeof(BattleRunner))]
     public sealed class TileInputRouter : MonoBehaviour
@@ -68,6 +69,15 @@ namespace CodexOfEchoes.Game.Input
             if (!_runner.IsBusy)
             {
                 _runner.Submit(new SelectTileCommand(index));
+            }
+        }
+
+        /// <summary>Button path. Same command the Enter key produces.</summary>
+        public void OnAttackClicked()
+        {
+            if (!_runner.IsBusy)
+            {
+                _runner.Submit(new CastWordCommand());
             }
         }
 
