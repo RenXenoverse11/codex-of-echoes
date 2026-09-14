@@ -75,6 +75,10 @@ namespace CodexOfEchoes.Core.Battle
                     HandleCastWord(events);
                     break;
 
+                case ScrambleCommand _:
+                    HandleScramble(events);
+                    break;
+
                 default:
                     events.Add(new CommandRejectedEvent(
                         $"Unsupported command '{command.GetType().Name}'."));
@@ -139,6 +143,22 @@ namespace CodexOfEchoes.Core.Battle
             events.Add(new TilesConsumedEvent(consumed));
             events.Add(new TilesFellEvent(refill.Moves));
             events.Add(new TilesSpawnedEvent(refill.Spawns));
+
+            State.ClearSelection();
+            events.Add(new SelectionClearedEvent());
+
+            ResolveEnemyTurn(events);
+        }
+
+        /// <summary>
+        /// Rerolls the board at the cost of the turn — the enemy still swings. This plus
+        /// the vowel invariant is the whole answer to dead boards; real detection is
+        /// combinatorial and deliberately out of scope for the slice.
+        /// </summary>
+        private void HandleScramble(List<BattleEvent> events)
+        {
+            State.Grid.Scramble();
+            events.Add(new GridScrambledEvent(State.Grid.Tiles));
 
             State.ClearSelection();
             events.Add(new SelectionClearedEvent());
