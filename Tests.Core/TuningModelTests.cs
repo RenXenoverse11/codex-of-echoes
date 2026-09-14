@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using CodexOfEchoes.Core.Battle;
 using CodexOfEchoes.Core.Combat;
@@ -25,8 +26,13 @@ namespace CodexOfEchoes.Core.Tests
                 playerMaxHp: 100,
                 seed: seed));
 
-        /// <summary>Casts NAP, then tops the enemy damage up to the modelled figure.</summary>
-        private static void PlayTurn(BattleEngine engine, int targetDamage)
+        /// <summary>
+        /// Casts NAP, then tops the enemy damage up to the modelled figure. Returns the
+        /// events from the cast (or the underlying command's rejection/end-of-battle
+        /// events) so callers can inspect what actually happened this turn — e.g. whether
+        /// a Feast heal landed — rather than re-deriving it from HP deltas.
+        /// </summary>
+        private static IReadOnlyList<BattleEvent> PlayTurn(BattleEngine engine, int targetDamage)
         {
             engine.State.Grid.SetTileForTesting(0, LetterTable.CreateTile("N"));
             engine.State.Grid.SetTileForTesting(1, LetterTable.CreateTile("A"));
@@ -40,7 +46,7 @@ namespace CodexOfEchoes.Core.Tests
 
             if (engine.State.Outcome != BattleOutcome.InProgress)
             {
-                return;
+                return events;
             }
 
             // Read the player's own cast damage from the event, rather than diffing
@@ -52,6 +58,8 @@ namespace CodexOfEchoes.Core.Tests
             {
                 engine.State.Enemy.TakeDamage(shortfall);
             }
+
+            return events;
         }
 
         [Test]
@@ -94,6 +102,14 @@ namespace CodexOfEchoes.Core.Tests
             }
 
             Assert.That(engine.State.Outcome, Is.EqualTo(BattleOutcome.Victory));
+
+            // The range allows for a "phantom turn": PlayTurn's top-up TakeDamage call
+            // happens outside Execute, so it can drop the enemy to 0 HP without tripping
+            // BattleEngine's own EndBattle (that only fires inside ResolveEnemyTurn). The
+            // win isn't detected until the next PlayTurn's real cast finds the enemy
+            // already dead, which can land the recorded win one turn later than the
+            // spec's literal "turn 6" — do not tighten this to (5, 6) without accounting
+            // for that mechanic.
             Assert.That(engine.State.TurnNumber, Is.InRange(5, 7));
             Assert.That(engine.State.Player.Hp, Is.GreaterThan(30));
         }
@@ -101,9 +117,12 @@ namespace CodexOfEchoes.Core.Tests
         [Test]
         public void TheEnemyEffectivePoolIncludesTwoFeastHeals()
         {
-            // 75 HP plus a 10 heal on turns 4 and 8 is the ~95 figure in the spec.
+            // Two Feast heals (turns 4 and 8) must actually land — asserted directly via
+            // HealedEvent rather than inferred from HP arithmetic, because 8 turns x 9
+            // target damage = 72 is already less than the enemy's 75 max HP even with
+            // zero healing, so an HP-only check doesn't actually prove the heals occurred.
             var engine = NewEngine(7);
-            var totalDealt = 0;
+            var totalHealed = 0;
 
             for (var turn = 1; turn <= 8; turn++)
             {
@@ -112,15 +131,14 @@ namespace CodexOfEchoes.Core.Tests
                     break;
                 }
 
-                var before = engine.State.Enemy.Hp;
-                PlayTurn(engine, 9);
-                totalDealt += before - engine.State.Enemy.Hp;
+                var events = PlayTurn(engine, 9);
+                totalHealed += events.OfType<HealedEvent>()
+                    .Where(healed => healed.Target == CombatantId.Enemy)
+                    .Sum(healed => healed.Amount);
             }
 
-            // Eight turns at 9 damage is 72 dealt, yet the enemy survives, because
-            // 20 HP came back.
+            Assert.That(totalHealed, Is.EqualTo(2 * AswangBehaviour.FeastHeal));
             Assert.That(engine.State.Enemy.IsDefeated, Is.False);
-            Assert.That(totalDealt, Is.LessThan(95));
         }
 
         [Test]
