@@ -40,7 +40,7 @@ namespace CodexOfEchoes.Game.Battle
                 _pending.Enqueue(battleEvent);
             }
 
-            if (_drain == null && isActiveAndEnabled)
+            if (_drain == null && isActiveAndEnabled && _pending.Count > 0)
             {
                 _drain = StartCoroutine(Drain());
             }
