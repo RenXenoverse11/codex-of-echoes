@@ -1,4 +1,5 @@
 using System;
+using CodexOfEchoes.Core.Combat;
 using CodexOfEchoes.Core.Words;
 
 namespace CodexOfEchoes.Core.Battle
@@ -15,7 +16,8 @@ namespace CodexOfEchoes.Core.Battle
             string enemyName,
             int enemyMaxHp,
             int playerMaxHp,
-            int seed)
+            int seed,
+            EnemyKind enemyKind = EnemyKind.Aswang)
         {
             Dictionary = dictionary ?? throw new ArgumentNullException(nameof(dictionary));
             StoryWords = storyWords ?? throw new ArgumentNullException(nameof(storyWords));
@@ -23,6 +25,7 @@ namespace CodexOfEchoes.Core.Battle
             EnemyMaxHp = enemyMaxHp;
             PlayerMaxHp = playerMaxHp;
             Seed = seed;
+            EnemyKind = enemyKind;
         }
 
         public IWordDictionary Dictionary { get; }
@@ -36,5 +39,7 @@ namespace CodexOfEchoes.Core.Battle
         public int PlayerMaxHp { get; }
 
         public int Seed { get; }
+
+        public EnemyKind EnemyKind { get; }
     }
 }

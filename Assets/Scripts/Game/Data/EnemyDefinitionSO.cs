@@ -1,3 +1,4 @@
+using CodexOfEchoes.Core.Combat;
 using UnityEngine;
 
 namespace CodexOfEchoes.Game.Data
@@ -13,6 +14,10 @@ namespace CodexOfEchoes.Game.Data
         [SerializeField] private string enemyName = "Aswang";
         [SerializeField] private int maxHp = 75;
 
+        [Tooltip("Which EnemyBehaviour subclass this enemy fights with.")]
+        [SerializeField]
+        private EnemyKind kind = EnemyKind.Aswang;
+
         [Tooltip("Folklore weaknesses. Bane words deal x2.5 damage against this enemy.")]
         [SerializeField]
         private string[] baneWords =
@@ -23,6 +28,8 @@ namespace CodexOfEchoes.Game.Data
         public string EnemyName => enemyName;
 
         public int MaxHp => maxHp;
+
+        public EnemyKind Kind => kind;
 
         public string[] BaneWords => baneWords;
     }

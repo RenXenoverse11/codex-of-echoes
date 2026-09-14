@@ -109,7 +109,8 @@ namespace CodexOfEchoes.Game.View
 
                 case HealedEvent healed:
                     enemyHealth.Set(healed.NewHp, runner.Engine.State.Enemy.MaxHp);
-                    ShowMessage($"The Aswang feasts. +{healed.Amount} HP.");
+                    ShowMessage(
+                        $"{runner.Engine.State.Enemy.Name} recovers {healed.Amount} HP.");
                     break;
 
                 case TilesFellEvent _:
@@ -118,16 +119,13 @@ namespace CodexOfEchoes.Game.View
                     RefreshTiles();
                     break;
 
-                case EnemyTelegraphedEvent _:
-                    enemyHealth.SetTelegraph("FEAST NEXT TURN");
+                case EnemyTelegraphedEvent telegraphed:
+                    enemyHealth.SetTelegraph(
+                        $"{telegraphed.Ability.ToString().ToUpperInvariant()} NEXT TURN");
                     break;
 
-                case EnemyActedEvent acted:
-                    if (acted.Ability == EnemyAbility.Feast)
-                    {
-                        enemyHealth.SetTelegraph(string.Empty);
-                    }
-
+                case EnemyActedEvent _:
+                    enemyHealth.SetTelegraph(string.Empty);
                     enemyView.PlayCast();
                     break;
 

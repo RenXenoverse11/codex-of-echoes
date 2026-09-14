@@ -30,7 +30,7 @@ namespace CodexOfEchoes.Core.Tests
         [TestCase(8, false)]
         public void TelegraphsFeastOneTurnAhead(int turn, bool expected)
         {
-            Assert.That(NewBehaviour().TelegraphsFeastNextTurn(turn), Is.EqualTo(expected));
+            Assert.That(NewBehaviour().TelegraphsSpecialNextTurn(turn), Is.EqualTo(expected));
         }
 
         [Test]

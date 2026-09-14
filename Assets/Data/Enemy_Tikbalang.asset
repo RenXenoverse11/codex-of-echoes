@@ -10,15 +10,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: dd1b0cb95ae4b054890dd789441a7603, type: 3}
-  m_Name: Enemy_Aswang
+  m_Name: Enemy_Tikbalang
   m_EditorClassIdentifier: CodexOfEchoes.Game::CodexOfEchoes.Game.Data.EnemyDefinitionSO
-  enemyName: Aswang
-  maxHp: 75
-  kind: 0
+  enemyName: Tikbalang
+  maxHp: 70
+  kind: 1
   baneWords:
-  - SALT
-  - GARLIC
-  - ASH
-  - OIL
-  - STING
-  - SPINE
+  - BRIDLE
+  - ROPE
+  - WHIP
+  - MIRROR
+  - BELL
+  - ANCHOR

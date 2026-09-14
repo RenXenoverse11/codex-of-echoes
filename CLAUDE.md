@@ -10,7 +10,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 dotnet test Tests.Core/CoreTests.csproj -v minimal
 ```
 
-Runs in ~2 seconds (132 tests) because `Tests.Core/CoreTests.csproj` is a plain .NET 8 project living *outside* `Assets/` that globs and compiles `Assets/Scripts/Core/**/*.cs` directly — it never opens Unity. This is the loop to use for any change under `Assets/Scripts/Core/`.
+Runs in ~2 seconds (151 tests) because `Tests.Core/CoreTests.csproj` is a plain .NET 8 project living *outside* `Assets/` that globs and compiles `Assets/Scripts/Core/**/*.cs` directly — it never opens Unity. This is the loop to use for any change under `Assets/Scripts/Core/`.
 
 Single test class or method:
 
@@ -63,7 +63,13 @@ When changing game balance or rules, work in Core and verify with `dotnet test`.
 
 **All animation timing lives in `Assets/Scripts/Game/Battle/BattlePresenter.cs`**, which receives the event list and drains it as a coroutine with a per-event-type delay (`BeatFor`). `BattleRunner` owns the actual `BattleEngine` instance and refuses to `Submit` a new command while the presenter is still draining (`IsBusy`), so the player can never act on a mid-animation board. If you need to change pacing or add a new animation, that belongs in the Game layer, not Core — Core should never know how long anything takes to *show*.
 
-Event order is part of the contract, not an implementation detail: for a successful cast, events land in a specific causal sequence (word cast → enemy damaged → tiles consumed/fall/spawn → selection cleared → enemy acts → player damaged → optional heal → optional telegraph). `BattleView.OnEvent` and the presenter both depend on this order to animate correctly; changing the sequence in `BattleEngine` without checking both consumers will silently desync the visuals from the model.
+Event order is part of the contract, not an implementation detail: for a successful cast, events land in a specific causal sequence (word cast → enemy damaged → tiles consumed/fall/spawn → selection cleared → enemy acts → player damaged → optional grid scramble → optional heal → optional telegraph). `BattleView.OnEvent` and the presenter both depend on this order to animate correctly; changing the sequence in `BattleEngine` without checking both consumers will silently desync the visuals from the model.
+
+### Enemy behaviours: one subclass per mythology monster
+
+`Assets/Scripts/Core/Combat/EnemyBehaviour.cs` is an abstract base (`AbilityForTurn`, `Act`, `SpecialAbility`, `TelegraphsSpecialNextTurn`) with one subclass per enemy — `AswangBehaviour.cs` (Strike/Feast) and `TikbalangBehaviour.cs` (Startle/Mislead). This is deliberately **not** a single data-driven class reading numbers off `EnemyDefinitionSO`: each mythology chapter's monster is meant to threaten the player in a genuinely different way (Aswang trades damage for self-healing; Tikbalang trades damage for disrupting the board via `EnemyAction.ScramblesGrid`, which `BattleEngine.ResolveEnemyTurn` resolves by calling `State.Grid.Scramble()` and emitting `GridScrambledEvent` — the same effect the player's own `ScrambleCommand` produces). Adding a fourth enemy with its own mechanic means a new `EnemyBehaviour` subclass, a new `EnemyKind` value, and a case in `BattleEngine`'s constructor switch — not new fields on `EnemyAction`, unless the new mechanic is a genuinely new *kind* of effect (as `ScramblesGrid` was).
+
+`EnemyDefinitionSO.Kind` (a `Core.Combat.EnemyKind`) is what tells `BattleSetupFactory`/`BattleEngine` which subclass to construct for a given authored enemy asset — it flows through `BattleSetup.EnemyKind` alongside the enemy's name/HP/bane words. The `Battle` scene's `BattleRunner` still references exactly one `EnemyDefinitionSO` at a time (there is no in-game enemy-select flow yet); swap which asset is assigned in the Inspector to fight a different enemy.
 
 ### Damage formula: no floating point
 

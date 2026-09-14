@@ -16,7 +16,7 @@ namespace CodexOfEchoes.Core.Battle
     {
         private readonly WordValidator _validator;
         private readonly StoryWordTable _storyWords;
-        private readonly AswangBehaviour _enemyBehaviour;
+        private readonly EnemyBehaviour _enemyBehaviour;
 
         public BattleEngine(BattleSetup setup)
         {
@@ -29,7 +29,11 @@ namespace CodexOfEchoes.Core.Battle
 
             _validator = new WordValidator(setup.Dictionary);
             _storyWords = setup.StoryWords;
-            _enemyBehaviour = new AswangBehaviour(rng);
+            _enemyBehaviour = setup.EnemyKind switch
+            {
+                EnemyKind.Tikbalang => new TikbalangBehaviour(rng),
+                _ => new AswangBehaviour(rng),
+            };
 
             State = new BattleState(
                 grid: new TileGrid(new TileBag(rng)),
@@ -184,6 +188,12 @@ namespace CodexOfEchoes.Core.Battle
             events.Add(new DamageDealtEvent(
                 CombatantId.Liora, action.Damage, State.Player.TakeDamage(action.Damage)));
 
+            if (action.ScramblesGrid)
+            {
+                State.Grid.Scramble();
+                events.Add(new GridScrambledEvent(State.Grid.Tiles));
+            }
+
             if (action.Heal > 0)
             {
                 events.Add(new HealedEvent(
@@ -196,9 +206,9 @@ namespace CodexOfEchoes.Core.Battle
                 return;
             }
 
-            if (_enemyBehaviour.TelegraphsFeastNextTurn(State.TurnNumber))
+            if (_enemyBehaviour.TelegraphsSpecialNextTurn(State.TurnNumber))
             {
-                events.Add(new EnemyTelegraphedEvent(EnemyAbility.Feast));
+                events.Add(new EnemyTelegraphedEvent(_enemyBehaviour.SpecialAbility));
             }
 
             State.TurnNumber++;

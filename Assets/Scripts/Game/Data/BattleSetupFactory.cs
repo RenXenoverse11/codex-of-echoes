@@ -28,7 +28,8 @@ namespace CodexOfEchoes.Game.Data
                 enemyName: enemy.EnemyName,
                 enemyMaxHp: enemy.MaxHp,
                 playerMaxHp: balance.PlayerMaxHp,
-                seed: seed);
+                seed: seed,
+                enemyKind: enemy.Kind);
         }
     }
 }
