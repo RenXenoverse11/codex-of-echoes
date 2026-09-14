@@ -52,12 +52,26 @@ namespace CodexOfEchoes.Game.Battle
             {
                 var battleEvent = _pending.Dequeue();
 
-                EventPlayed?.Invoke(battleEvent);
+                try
+                {
+                    EventPlayed?.Invoke(battleEvent);
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogError(
+                        $"[BattlePresenter] A view threw while handling {battleEvent.GetType().Name}: {ex}");
+                }
 
                 yield return new WaitForSeconds(BeatFor(battleEvent));
             }
 
             _drain = null;
+        }
+
+        private void OnDisable()
+        {
+            _drain = null;
+            _pending.Clear();
         }
 
         private float BeatFor(BattleEvent battleEvent)
