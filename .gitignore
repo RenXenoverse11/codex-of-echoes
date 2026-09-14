@@ -38,3 +38,7 @@ crashlytics-build.properties
 !Tests.Core/*.csproj
 Tests.Core/bin/
 Tests.Core/obj/
+
+# Generated Unity Test Framework result reports
+playmode-results.xml
+editmode-results.xml
