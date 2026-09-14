@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: BalanceConfig
   m_EditorClassIdentifier: CodexOfEchoes.Game::CodexOfEchoes.Game.Data.BalanceConfigSO
   playerMaxHp: 100
-  fixedSeed: 20260914
+  fixedSeed: 0

@@ -29,6 +29,7 @@ namespace CodexOfEchoes.Game.View
         [SerializeField] private TMP_Text currentWordLabel;
         [SerializeField] private TMP_Text messageLabel;
         [SerializeField] private GameObject rewrittenPagePanel;
+        [SerializeField] private GameObject retryButton;
 
         private readonly List<TileView> _tiles = new List<TileView>();
 
@@ -171,6 +172,11 @@ namespace CodexOfEchoes.Game.View
                 lioraView.PlayDefeat();
                 enemyView.PlayVictory();
                 ShowMessage("The Silence takes the page.");
+            }
+
+            if (retryButton != null)
+            {
+                retryButton.SetActive(true);
             }
         }
 
