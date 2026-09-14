@@ -56,7 +56,7 @@ namespace CodexOfEchoes.Core.Grid
                 CollapseColumn(column, removed, moves, spawns);
             }
 
-            EnforceVowelInvariant();
+            spawns.AddRange(EnforceVowelInvariant());
 
             return new GridRefillResult(moves, spawns);
         }
@@ -130,12 +130,13 @@ namespace CodexOfEchoes.Core.Grid
         /// against unplayable hands; real dead-board detection is combinatorial and
         /// deliberately out of scope.
         /// </summary>
-        private void EnforceVowelInvariant()
+        private List<TileSpawn> EnforceVowelInvariant()
         {
+            var replacements = new List<TileSpawn>();
             var deficit = MinVowels - VowelCount;
             if (deficit <= 0)
             {
-                return;
+                return replacements;
             }
 
             var consonantIndices = Enumerable.Range(0, Size)
@@ -144,8 +145,13 @@ namespace CodexOfEchoes.Core.Grid
 
             for (var i = 0; i < deficit && i < consonantIndices.Count; i++)
             {
-                _tiles[consonantIndices[i]] = _bag.DrawVowel();
+                var index = consonantIndices[i];
+                var tile = _bag.DrawVowel();
+                _tiles[index] = tile;
+                replacements.Add(new TileSpawn(index, tile));
             }
+
+            return replacements;
         }
     }
 }

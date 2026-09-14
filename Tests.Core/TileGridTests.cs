@@ -121,6 +121,53 @@ namespace CodexOfEchoes.Core.Tests
         }
 
         [Test]
+        public void EventsAccountForEveryTileChangedByVowelInvariantTopUps()
+        {
+            for (var seed = 1; seed <= 100; seed++)
+            {
+                var grid = NewGrid(seed);
+                var before = Enumerable.Range(0, TileGrid.Size)
+                    .Select(i => grid[i].Letter)
+                    .ToList();
+
+                // Consuming every vowel forces a post-consume deficit on most seeds,
+                // so the vowel invariant fires after CollapseColumn has already built
+                // its moves/spawns.
+                var vowelIndices = Enumerable.Range(0, TileGrid.Size)
+                    .Where(i => LetterTable.IsVowel(grid[i].Letter))
+                    .ToList();
+
+                var result = grid.Consume(vowelIndices);
+
+                var touched = new HashSet<int>(result.Moves.Select(m => m.To));
+                touched.UnionWith(result.Spawns.Select(s => s.Index));
+
+                for (var i = 0; i < TileGrid.Size; i++)
+                {
+                    if (grid[i].Letter != before[i])
+                    {
+                        Assert.That(touched, Does.Contain(i),
+                            $"seed {seed}: index {i} changed on the board with no Move or Spawn event");
+                    }
+                }
+
+                // If the invariant replaced a tile CollapseColumn already recorded as a
+                // spawn, the later (invariant) spawn must be the one that matches the
+                // board, since GridRefillResult's contract is "apply moves, then spawns
+                // in order."
+                var lastSpawnPerIndex = result.Spawns
+                    .GroupBy(s => s.Index)
+                    .ToDictionary(g => g.Key, g => g.Last());
+
+                foreach (var entry in lastSpawnPerIndex)
+                {
+                    Assert.That(entry.Value.Tile.Letter, Is.EqualTo(grid[entry.Key].Letter),
+                        $"seed {seed}: index {entry.Key} spawn event disagrees with final board tile");
+                }
+            }
+        }
+
+        [Test]
         public void ScrambleReplacesEveryTileAndKeepsTheInvariant()
         {
             var grid = NewGrid(303);
