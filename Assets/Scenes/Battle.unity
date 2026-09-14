@@ -1609,7 +1609,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: CodexOfEchoes.Game::CodexOfEchoes.Game.View.PlaceholderCombatantView
   body: {fileID: 1375918001}
-  idleColor: {r: 0.35, g: 0.42, b: 0.65, a: 1}
+  idleColor: {r: 1, g: 1, b: 1, a: 1}
   hurtColor: {r: 0.85, g: 0.25, b: 0.25, a: 1}
   nudgeDistance: 0.35
   beat: 0.18
@@ -1662,8 +1662,8 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 21300000, guid: 4c6633aa5aeb89a40a010180429b1178, type: 3}
-  m_Color: {r: 0.35, g: 0.42, b: 0.65, a: 1}
+  m_Sprite: {fileID: 21300000, guid: c9828838f4e933948a52307d42530f2c, type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
